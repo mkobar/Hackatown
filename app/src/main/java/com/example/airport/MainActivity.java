@@ -17,6 +17,7 @@ package com.example.airport;
 //        import com.N2ChaoGmailCom.EyebeaconDwh.estimote.EstimoteCloudBeaconDetailsFactory;
         import java.util.List;
         import java.util.Locale;
+        import java.util.Random;
         import java.util.UUID;
         import java.util.concurrent.TimeUnit;
 
@@ -34,6 +35,11 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     private int currentDistance;
     private String beaconName = "";
 
+    private String [] trafficLights =  {"red","red","red","red","green","green","green","green","yellow","yellow"};
+
+    private static int previous = 0 ;
+    private static int index = 1;
+    Random ran;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +58,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         // Set the gesture detector as the double tap
         // listener.
         mDetector.setOnDoubleTapListener(this);
+
+        ran = new Random();
 
 
     }
@@ -103,7 +111,6 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         running = false;
         super.onPause();
     }
-
 
 
     private void speakOut(String test) {
@@ -163,8 +170,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
     @Override
     public void onLongPress(MotionEvent e) {
-//        Log.d("Hey", "Long press af " + currentDistance);
-        if(running)
+//        Log.d("Hey", "Long press " + currentDistance);
+        if(!beaconName.equals("") && running)
             speakOut("About "+ currentDistance + " meters from " +beaconName);
 
 
@@ -183,6 +190,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 @Override
                 public void onBeaconsDiscovered(Region region, List<Beacon> list) {
 
+
                     if (!list.isEmpty()) {
 
 
@@ -199,6 +207,19 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
 
 
+                        if(previous == 0){
+                            previous = major;
+                        }
+                        else if(previous == major){
+                            index = index+1;
+                            if(index==10){
+                                index = 0;
+                            }
+                        }else if (previous != major){
+                            index = ran.nextInt(9);
+                            previous = major;
+                        }
+
                         double distance = Utils.computeAccuracy(closest);
                         int result = (int) Math.ceil(distance);
                         Log.d("BEACONS", "Distance: " + result);
@@ -206,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                         if (result < 3) {
                            // Log.d("BEACONS", "Distance: " + result);
 //                    speakOut(Integer.toString(result) + " meters");
-                            speakOut("Red Light at "+beaconName);
+                            speakOut(trafficLights[index]+" Light at "+beaconName);
                         }
                     }
                 }
